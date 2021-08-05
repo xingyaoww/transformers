@@ -1833,7 +1833,7 @@ class GenerationMixin:
             next_token_scores, next_tokens = torch.topk(
                 next_token_scores, 2 * num_beams, dim=1, largest=True, sorted=True
             )
-
+            # print(f"h next toekns: {next_tokens}")
             next_indices = next_tokens // vocab_size
             next_tokens = next_tokens % vocab_size
 
@@ -1851,6 +1851,11 @@ class GenerationMixin:
             beam_idx = beam_outputs["next_beam_indices"]
 
             input_ids = torch.cat([input_ids[beam_idx, :], beam_next_tokens.unsqueeze(-1)], dim=-1)
+            # print(f"h beam_scores shape: {beam_scores.shape}")
+            # print(f"h beam_scores: {beam_scores}")
+            # print(f"h beam_next_tokens: {beam_next_tokens}")
+            # print(f"h Batch token ids shape: {input_ids.shape}")
+            # print(f"h Batch token ids: {input_ids}")
 
             model_kwargs = self._update_model_kwargs_for_generation(
                 outputs, model_kwargs, is_encoder_decoder=self.config.is_encoder_decoder

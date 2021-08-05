@@ -172,6 +172,139 @@ class BartAttention(nn.Module):
 
         # get query proj
         query_states = self.q_proj(hidden_states) * self.scaling
+        # _no_bias_query = F.linear(hidden_states, self.q_proj.weight)
+        # if is_cross_attention:
+        #     print(f"hidden_state shape: {hidden_states.shape}")
+        #     print(f"encdec attn query nobias shape: {_no_bias_query.shape}")
+        #     print(f"encdec attn query nobias (head): {_no_bias_query.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn query nobias (tail): {_no_bias_query.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     _reshape_query_with_bias = query_states.view(bsz, -1, self.num_heads, self.head_dim).transpose(0, 2).view(self.num_heads, -1, self.head_dim) / self.scaling
+        #     print(f"encdec attn query reshaped shape: {_reshape_query_with_bias.shape}")
+        #     print(f"encdec attn query reshaped (head): {_reshape_query_with_bias.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn query reshaped (tail): {_reshape_query_with_bias.flatten()[-5:].cpu().detach().numpy()}")
+        #     _reshape_query_with_bias *= self.scaling
+
+        #     k_proj_weight_t = self.k_proj.weight.view(self.num_heads, self.head_dim, self.num_heads * self.head_dim)
+        #     print(f"encdec attn k_project_weight shape: {k_proj_weight_t.shape}")
+        #     print(f"encdec attn k_project_weight (head): {k_proj_weight_t.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn k_project_weight(tail): {k_proj_weight_t.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     q_w = torch.bmm(_reshape_query_with_bias, k_proj_weight_t)
+        #     print(f"encdec attn q_w shape: {q_w.shape}")
+        #     print(f"encdec attn q_w (head): {q_w.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn q_w (tail): {q_w.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     key_states = self._shape(self.k_proj(key_value_states), -1, bsz)
+        #     # print(f"key_state shape: {key_states.shape}")
+        #     beam_size = key_states.shape[0]
+
+        #     kv_bsz = bsz // beam_size
+        #     q_w = q_w.view(self.num_heads, kv_bsz, beam_size, self.embed_dim)\
+        #         .transpose(0, 1).view(kv_bsz, self.num_heads * beam_size, self.embed_dim)
+        #     print(f"encdec attn q_w reshaped shape: {q_w.shape}")
+        #     print(f"encdec attn q_w reshaped (head): {q_w.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn q_w reshaped (tail): {q_w.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     # actual _p_d_encoder_output
+        #     print(f"key_value_states shape: {key_value_states.shape}")
+        #     # key_value_states_reshaped == key == value (before projection) == encoder_output
+        #     key_value_states_reshaped = key_value_states.transpose(1, 2)
+        #     # only select the 1st one, as these vectors are copied num_beam times
+        #     key_value_states_reshaped = key_value_states_reshaped[0].unsqueeze(0)
+
+        #     print(f"key_value_states after reshape shape: {key_value_states_reshaped.shape}")
+        #     print(f"q_w shape: {q_w.shape}")
+        #     # q_w shape: [batch_size, head_num * beam_size, head_num * dim_per_head]
+        #     # key_value_states_reshaped: [batch_size, _tw._hidden_size, batch_seq_len]
+        #     _attn_weights = torch.bmm(q_w, key_value_states_reshaped)
+        #     # expect _attn_weights: [batch_size, head_num * beam_size, batch_seq_len]
+        #     print(f"encdec _attn_weights shape: {_attn_weights.shape}")
+        #     # print(f"encdec _attn_weights (all): {_attn_weights.flatten().cpu().detach().numpy()}")
+        #     print(f"encdec _attn_weights (head): {_attn_weights.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec _attn_weights (tail): {_attn_weights.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     k_proj_bias_t = self.k_proj.bias.view(self.num_heads, self.head_dim, 1)
+        #     print(f"encdec attn k_proj_bias_t shape: {k_proj_bias_t.shape}")
+        #     print(f"encdec attn k_proj_bias_t (head): {k_proj_bias_t.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn k_proj_bias_t (tail): {k_proj_bias_t.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     q_b = torch.bmm(_reshape_query_with_bias, k_proj_bias_t)
+        #     print(f"encdec attn q_b shape: {q_b.shape}")
+        #     print(f"encdec attn q_b (head): {q_b.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn q_b (tail): {q_b.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     q_b = (q_b.view(self.num_heads, kv_bsz, beam_size, 1)
+        #            .transpose(0, 1)
+        #            .reshape(kv_bsz, self.num_heads * beam_size, 1)
+        #            )
+        #     print(f"encdec attn q_b reshaped shape: {q_b.shape}")
+        #     print(f"encdec attn q_b reshaped (head): {q_b.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn q_b reshaped  (tail): {q_b.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     # head_id = 1
+        #     # batch_id = 0
+        #     # batch_seq_len = _attn_weights.shape[2]
+        #     # for beam_id in range(beam_size):
+        #     #     for batch_seq_id in range(batch_seq_len):
+        #     #         _cur_qb_val = q_b[batch_id, head_id * beam_size + beam_id, 0]
+        #     #         _cur_attn_weight = _attn_weights[batch_id, head_id * beam_size + beam_id, batch_seq_id]
+        #     #         print(f"head_id 1, batch_id 0, beam_id {beam_id}, batch_seq_id {batch_seq_id}, q_b value {_cur_qb_val}, ori attn_weight value {_cur_attn_weight}, new val {_cur_qb_val + _cur_attn_weight}.")
+
+        #     _attn_weights = _attn_weights + q_b
+        #     print(f"encdec _attn_weights added shape: {_attn_weights.shape}")
+        #     print(f"encdec _attn_weights added (head): {_attn_weights.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec _attn_weights added (tail): {_attn_weights.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     attn_probs = torch.softmax(_attn_weights, dim=-1)
+        #     print(f"encdec attn_probs shape: {attn_probs.shape}")
+        #     print(f"encdec attn_probs (head): {attn_probs.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn_probs (tail): {attn_probs.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     # key_value_states_reshaped: [batch_size, _tw._hidden_size, batch_seq_len]
+        #     # key_value_states_reshaped (transposed): [batch_size, batch_seq_len, _tw._hidden_size]
+        #     attn_h = torch.bmm(attn_probs, key_value_states_reshaped.transpose(1, 2))
+        #     print(f"encdec attn_h shape: {attn_h.shape}")
+        #     print(f"encdec attn_h (head): {attn_h.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn_h (tail): {attn_h.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     attn_h = (attn_h.view(kv_bsz,
+        #                           self.num_heads, beam_size, self.embed_dim)
+        #               .transpose(0, 1)
+        #               .contiguous()
+        #               .view(self.num_heads, kv_bsz * beam_size, self.embed_dim)
+        #               )
+        #     print(f"encdec attn_h reshaped shape: {attn_h.shape}")
+        #     print(f"encdec attn_h reshaped (head): {attn_h.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn_h reshaped (tail): {attn_h.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     v_proj_weight_t = self.v_proj.weight.view(self.num_heads, self.head_dim, self.num_heads * self.head_dim)
+        #     print(f"encdec attn v_proj_weight_t shape: {v_proj_weight_t.shape}")
+        #     print(f"encdec attn v_proj_weight_t (head): {v_proj_weight_t.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn v_proj_weight_t (tail): {v_proj_weight_t.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     attn = torch.bmm(attn_h, v_proj_weight_t.transpose(1, 2))
+        #     print(f"encdec attn after_v_proj shape: {attn.shape}")
+        #     print(f"encdec attn after_v_proj (head): {attn.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn after_v_proj (tail): {attn.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     attn = (attn
+        #             .transpose(0, 1)
+        #             .contiguous()
+        #             .view(1, kv_bsz * beam_size,
+        #                   self.num_heads * self.head_dim)
+        #             )
+
+        #     # attn += self.out_proj.bias
+        #     print(f"encdec attn after_v_proj reshaped shape: {attn.shape}")
+        #     print(f"encdec attn after_v_proj reshaped (head): {attn.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn after_v_proj reshaped (tail): {attn.flatten()[-5:].cpu().detach().numpy()}")
+
+        #     attn = F.linear(attn, self.out_proj.weight) + self.out_proj.bias
+        #     print(f"encdec attn output shape: {attn.shape}")
+        #     print(f"encdec attn output (head): {attn.flatten()[:5].cpu().detach().numpy()}")
+        #     print(f"encdec attn output (tail): {attn.flatten()[-5:].cpu().detach().numpy()}")
+
         # get key, value proj
         if is_cross_attention and past_key_value is not None:
             # reuse k,v, cross_attentions
@@ -407,7 +540,9 @@ class BartDecoderLayer(nn.Module):
         cross_attn_weights = None
         if encoder_hidden_states is not None:
             residual = hidden_states
-
+            # print(f"encdec attn ln shape: {hidden_states.shape}")
+            # print(f"encdec attn ln (head): {hidden_states.flatten()[:10].cpu().detach().numpy()}")
+            # print(f"encdec attn ln (tail): {hidden_states.flatten()[-10:].cpu().detach().numpy()}")
             # cross_attn cached key/values tuple is at positions 3,4 of present_key_value tuple
             cross_attn_past_key_value = past_key_value[-2:] if past_key_value is not None else None
             hidden_states, cross_attn_weights, cross_attn_present_key_value = self.encoder_attn(
@@ -750,10 +885,12 @@ class BartEncoder(BartPretrainedModel):
 
         if inputs_embeds is None:
             inputs_embeds = self.embed_tokens(input_ids) * self.embed_scale
-
         embed_pos = self.embed_positions(input_shape)
 
         hidden_states = inputs_embeds + embed_pos
+        # print(f"encoder embedding shape: {hidden_states.shape}")
+        # for token_pos in range(hidden_states.shape[1]):
+        #     print(f"emb token {token_pos}: {hidden_states[0, token_pos, :10].cpu().detach().numpy()}")
         hidden_states = self.layernorm_embedding(hidden_states)
         hidden_states = F.dropout(hidden_states, p=self.dropout, training=self.training)
 
@@ -804,7 +941,9 @@ class BartEncoder(BartPretrainedModel):
 
             if output_attentions:
                 all_attentions = all_attentions + (layer_outputs[1],)
-
+        # print(f"encoder output shape: {hidden_states.shape}")
+        # for token_pos in range(hidden_states.shape[1]):
+        #     print(f" encoder output {token_pos}: {hidden_states[0, token_pos, :10].cpu().detach().numpy()}")
         if output_hidden_states:
             encoder_states = encoder_states + (hidden_states,)
 

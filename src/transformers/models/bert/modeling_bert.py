@@ -205,7 +205,13 @@ class BertEmbeddings(nn.Module):
         if self.position_embedding_type == "absolute":
             position_embeddings = self.position_embeddings(position_ids)
             embeddings += position_embeddings
+
+        # print(f"embedding shape: {embeddings.shape}")
+        for token_pos in range(embeddings.shape[1]):
+            # print(f"emb token {token_pos}: {embeddings[0, token_pos, :10].cpu().detach().numpy()}")
         embeddings = self.LayerNorm(embeddings)
+        # print(f"embedding after layernorm (head): ", embeddings.detach().cpu().flatten().numpy()[:5])
+        # print(f"embedding after layernorm (tail): ", embeddings.detach().cpu().flatten().numpy()[-5:])
         embeddings = self.dropout(embeddings)
         return embeddings
 
@@ -313,6 +319,8 @@ class BertSelfAttention(nn.Module):
 
         # Normalize the attention scores to probabilities.
         attention_probs = nn.Softmax(dim=-1)(attention_scores)
+        # print("self attn correlation(head): ", attention_probs.detach().cpu().flatten().numpy()[:5])
+        # print("self attn correlation(tail): ", attention_probs.detach().cpu().flatten().numpy()[-5:])
 
         # This is actually dropping out entire tokens to attend to, which might
         # seem a bit unusual, but is taken from the original Transformer paper.
@@ -323,6 +331,8 @@ class BertSelfAttention(nn.Module):
             attention_probs = attention_probs * head_mask
 
         context_layer = torch.matmul(attention_probs, value_layer)
+        # print("self attn before ffn(head): ", context_layer.detach().cpu().flatten().numpy()[:5])
+
 
         context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
         new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
@@ -344,8 +354,17 @@ class BertSelfOutput(nn.Module):
 
     def forward(self, hidden_states, input_tensor):
         hidden_states = self.dense(hidden_states)
+        # print("self attn ffn out(head): ", (hidden_states + input_tensor).detach().cpu().flatten().numpy()[:5])
+        # print("self attn ffn out(tail): ", (hidden_states + input_tensor).detach().cpu().flatten().numpy()[-5:])
         hidden_states = self.dropout(hidden_states)
         hidden_states = self.LayerNorm(hidden_states + input_tensor)
+        # print("self attn ffn layernorm scale (head): ", self.LayerNorm.weight.detach().cpu().numpy().flatten()[:5])
+        # # print("self attn ffn layernorm scale (tail): ", self.LayerNorm.weight.detach().cpu().numpy().flatten()[-5:])
+        # print("self attn ffn layernorm bias (head): ", self.LayerNorm.bias.detach().cpu().numpy().flatten()[:5])
+        # # print("self attn ffn layernorm bias (tail): ", self.LayerNorm.bias.detach().cpu().numpy().flatten()[-5:])
+
+        # print("self attn ffn out after layernorm(head): ", hidden_states.detach().cpu().flatten().numpy()[:5])
+        # print("self attn ffn out after layernorm(tail): ", hidden_states.detach().cpu().flatten().numpy()[-5:])
         return hidden_states
 
 

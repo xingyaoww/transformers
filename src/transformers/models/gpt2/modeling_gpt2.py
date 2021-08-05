@@ -190,7 +190,9 @@ class GPT2Attention(nn.Module):
             # Apply the attention mask
             attn_weights = attn_weights + attention_mask
 
+        # print(f"weights (before softmax): {attn_weights.shape} {attn_weights.flatten().detach().cpu().numpy()[-5:]}")
         attn_weights = nn.Softmax(dim=-1)(attn_weights)
+        # print(f"weights (after softmax): {attn_weights.shape} {attn_weights.flatten().detach().cpu().numpy()[-5:]}")
         attn_weights = self.attn_dropout(attn_weights)
 
         # Mask heads if we want to
@@ -239,12 +241,19 @@ class GPT2Attention(nn.Module):
             key, value = self.c_attn(encoder_hidden_states).split(self.split_size, dim=2)
             attention_mask = encoder_attention_mask
         else:
-            query, key, value = self.c_attn(hidden_states).split(self.split_size, dim=2)
+            _before_split = self.c_attn(hidden_states)
+            
+            # _nobias = self.c_attn(hidden_states, no_bias=True).view(-1, 2304)
+            # print(f"after subtract bias (no transpose): {_nobias.flatten().detach().cpu().numpy()[-5:]}")
+
+
+            query, key, value = _before_split.split(self.split_size, dim=2)
 
         query = self._split_heads(query, self.num_heads, self.head_dim)
         key = self._split_heads(key, self.num_heads, self.head_dim)
         value = self._split_heads(value, self.num_heads, self.head_dim)
-
+        # (batch, head, seq_length, head_features)
+        
         if layer_past is not None:
             past_key, past_value = layer_past
             key = torch.cat((past_key, key), dim=-2)
@@ -259,6 +268,7 @@ class GPT2Attention(nn.Module):
 
         attn_output = self._merge_heads(attn_output, self.num_heads, self.head_dim)
         attn_output = self.c_proj(attn_output)
+        # print(f"qkv projected: {attn_output.shape} {attn_output.flatten()[-5:]}")
         attn_output = self.resid_dropout(attn_output)
 
         outputs = (attn_output, present)
@@ -314,6 +324,7 @@ class GPT2Block(nn.Module):
     ):
         residual = hidden_states
         hidden_states = self.ln_1(hidden_states)
+        # print(f"first layernorm output: {hidden_states.flatten().detach().cpu().numpy()[-5:]}")
         attn_outputs = self.attn(
             hidden_states,
             layer_past=layer_past,
