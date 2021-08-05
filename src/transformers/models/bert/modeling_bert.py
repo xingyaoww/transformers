@@ -207,7 +207,7 @@ class BertEmbeddings(nn.Module):
             embeddings += position_embeddings
 
         # print(f"embedding shape: {embeddings.shape}")
-        for token_pos in range(embeddings.shape[1]):
+        # for token_pos in range(embeddings.shape[1]):
             # print(f"emb token {token_pos}: {embeddings[0, token_pos, :10].cpu().detach().numpy()}")
         embeddings = self.LayerNorm(embeddings)
         # print(f"embedding after layernorm (head): ", embeddings.detach().cpu().flatten().numpy()[:5])
