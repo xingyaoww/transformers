@@ -603,6 +603,10 @@ _import_structure = {
         "MgpstrTokenizer",
     ],
     "models.mistral": ["MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP", "MistralConfig"],
+    "models.multimodal_mistral": [
+        "MULTIMODAL_MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP",
+        "MultimodalMistralConfig"
+    ],
     "models.mixtral": ["MIXTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP", "MixtralConfig"],
     "models.mluke": [],
     "models.mobilebert": [
@@ -2651,6 +2655,12 @@ else:
             "MistralForSequenceClassification",
             "MistralModel",
             "MistralPreTrainedModel",
+        ]
+    )
+    _import_structure["models.multimodal_mistral"].extend(
+        [
+            "MultimodalMistralForCausalLM",
+            "MultimodalMistralModel",
         ]
     )
     _import_structure["models.mixtral"].extend(
@@ -5384,6 +5394,10 @@ if TYPE_CHECKING:
         MgpstrTokenizer,
     )
     from .models.mistral import MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP, MistralConfig
+    from .models.multimodal_mistral import (
+        MULTIMODAL_MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP,
+        MultimodalMistralConfig,
+    )
     from .models.mixtral import MIXTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP, MixtralConfig
     from .models.mobilebert import (
         MOBILEBERT_PRETRAINED_CONFIG_ARCHIVE_MAP,
@@ -7206,6 +7220,10 @@ if TYPE_CHECKING:
             MistralForSequenceClassification,
             MistralModel,
             MistralPreTrainedModel,
+        )
+        from .models.multimodal_mistral import (
+            MultimodalMistralForCausalLM,
+            MultimodalMistralModel
         )
         from .models.mixtral import (
             MixtralForCausalLM,
