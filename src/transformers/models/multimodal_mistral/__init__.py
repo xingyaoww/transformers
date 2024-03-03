@@ -17,7 +17,7 @@ from ...utils import OptionalDependencyNotAvailable, _LazyModule, is_flax_availa
 
 
 _import_structure = {
-    "configuration_mistral": ["MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP", "MistralConfig"],
+    "configuration_multimodal_mistral": ["MULTIMODAL_MISTRAL_PRETRAINED_CONFIG_ARCHIVE_MAP", "MultimodalMistralConfig"],
 }
 
 
